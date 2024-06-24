@@ -12,68 +12,70 @@
 #  License for the specific language governing permissions and limitations
 #  under the License.
 
-
 import os
 import sys
-import phonetic as ph
+import random
+import datetime
 from argparse import ArgumentParser
 
+import requests
+from bs4 import BeautifulSoup
+
 from flask import Flask, request, abort
-from linebot import (
-    LineBotApi, WebhookParser
-)
-from linebot.exceptions import (
-    InvalidSignatureError
-)
+from linebot import LineBotApi, WebhookParser
+from linebot.exceptions import InvalidSignatureError, LineBotApiError
 from linebot.models import (
-    MessageEvent, TextMessage, TextSendMessage,
+    MessageEvent, TextSendMessage, StickerSendMessage, ImageSendMessage, LocationSendMessage, TextMessage
 )
+
+import phonetic as ph  # Assuming phonetic module is defined elsewhere
+
+# Assuming settings is imported for LINE credentials (not provided in the snippet)
+from your_module import settings
+
+line_bot_api = LineBotApi(settings.LINE_CHANNEL_ACCESS_TOKEN)
+parser = WebhookParser(settings.LINE_CHANNEL_SECRET)
 
 app = Flask(__name__)
-
-# get channel_secret and channel_access_token from your environment variable
-channel_secret = os.getenv('LINE_CHANNEL_SECRET', None)
-channel_access_token = os.getenv('LINE_CHANNEL_ACCESS_TOKEN', None)
-if channel_secret is None:
-    print('Specify LINE_CHANNEL_SECRET as environment variable.')
-    sys.exit(1)
-if channel_access_token is None:
-    print('Specify LINE_CHANNEL_ACCESS_TOKEN as environment variable.')
-    sys.exit(1)
-
-line_bot_api = LineBotApi(channel_access_token)
-parser = WebhookParser(channel_secret)
-
 
 @app.route("/callback", methods=['POST'])
 def callback():
     signature = request.headers['X-Line-Signature']
-
-    # get request body as text
     body = request.get_data(as_text=True)
     app.logger.info("Request body: " + body)
 
-    # parse webhook body
     try:
         events = parser.parse(body, signature)
     except InvalidSignatureError:
         abort(400)
+    except LineBotApiError:
+        abort(400)
 
-    # if event is MessageEvent and message is TextMessage, then echo text
     for event in events:
-        if not isinstance(event, MessageEvent):
-            continue
-        if not isinstance(event.message, TextMessage):
-            continue
+        if isinstance(event, MessageEvent) and isinstance(event.message, TextMessage):
+            # Handle different message types based on the content
+            msg = event.message.text.strip()
 
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=ph.read(event.message.text))
-        )
+            if msg == 'hello' or msg == 'hi':
+                line_bot_api.reply_message(
+                    event.reply_token,
+                    StickerSendMessage(package_id=789, sticker_id=10856)
+                )
+            elif msg.startswith('/'):
+                # Handle dictionary lookup
+                pass  # Placeholder for cambridge function
+            elif msg == '猜一下':
+                # Handle random number guessing
+                pass
+            elif msg == '求籤' or msg == '抽籤':
+                # Handle fortune stick drawing
+                pass
+            elif msg == '最新消息' or msg == '今日新聞':
+                # Handle fetching news
+                pass
+            # Add more message handlers as needed
 
     return 'OK'
-
-
 if __name__ == "__main__":
     arg_parser = ArgumentParser(
         usage='Usage: python ' + __file__ + ' [--port <port>] [--help]'
