@@ -74,6 +74,37 @@ def callback():
 
     return 'OK'
 
+def cambridge(word):
+    url = 'https://dictionary.cambridge.org/dictionary/english-chinese-traditional/'+word
+    user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.63 Safari/537.36"
+    headers = {'User-Agent': user_agent}
+    web_request = requests.get(url, headers=headers)
+    soup = BeautifulSoup(web_request.text, "html.parser")
+    entries = soup.find_all("div", class_="entry-body__el")
+    rr = ""
+    for entry in entries:
+        rr += entry.find('div',class_="posgram").text + '\n'
+        i=1
+        ddefs = entry.find_all("div", class_="def-body")
+        i=1
+        for ddef in ddefs:
+            tran = ddef.find('span')
+            rr += str(i) +'.'+tran.text+"\n"
+            i+=1
+    rr += "\n出處:" + url
+    return rr
+
+       )
+
+                elif msg.startswith('/'):
+                    
+                    sms = cambridge( msg[1:] )
+                    line_bot_api.reply_message(
+                        event.reply_token,
+                        TextSendMessage(text=sms)
+     )
+
+
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser(
