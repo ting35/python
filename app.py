@@ -17,18 +17,6 @@ import sys
 import phonetic as ph
 from argparse import ArgumentParser
 
-from linebot import LineBotApi, WebhookParser
-from linebot.exceptions import InvalidSignatureError, LineBotApiError
-from linebot.models import MessageEvent, TextSendMessage, StickerSendMessage, ImageSendMessage, LocationSendMessage
-
-import datetime
-import random
-
-line_bot_api = LineBotApi(settings.LINE_CHANNEL_ACCESS_TOKEN)
-parser = WebhookParser(settings.LINE_CHANNEL_SECRET)
-
-import requests
-from bs4 import BeautifulSoup
 
 
 from flask import Flask, request, abort
